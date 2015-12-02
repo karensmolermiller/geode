@@ -175,14 +175,6 @@ public class OffHeapStorage implements OffHeapMemoryStats {
    * @return MemoryAllocator for off-heap storage
    */
   public static MemoryAllocator createOffHeapStorage(LogWriter lw, StatisticsFactory sf, long offHeapMemorySize, DistributedSystem system) {
-    // TODO: delete this block of code after tests are changed to use new config
-    if (offHeapMemorySize == 0 && !Boolean.getBoolean(InternalLocator.FORCE_LOCATOR_DM_TYPE)) {
-      String offHeapConfig = System.getProperty("gemfire.OFF_HEAP_TOTAL_SIZE");
-      if (offHeapConfig != null && !offHeapConfig.equals("")) {
-        offHeapMemorySize = parseLongWithUnits(offHeapConfig, 0L, 1024*1024);
-      }
-    }
-    
     MemoryAllocator result;
     if (offHeapMemorySize == 0 || Boolean.getBoolean(InternalLocator.FORCE_LOCATOR_DM_TYPE)) {
       // Checking the FORCE_LOCATOR_DM_TYPE is a quick hack to keep our locator from allocating off heap memory.
