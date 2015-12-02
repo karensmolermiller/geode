@@ -76,4 +76,32 @@ public class OffHeapStorageJUnitTest {
     assertEquals(GIGABYTE, OffHeapStorage.parseOffHeapMemorySize("1g"));
     assertEquals(Integer.MAX_VALUE * GIGABYTE, OffHeapStorage.parseOffHeapMemorySize("" + Integer.MAX_VALUE + "g"));
   }
+  @Test
+  public void testCalcMaxSlabSize() {
+    assertEquals(100, OffHeapStorage.calcMaxSlabSize(100L));
+    assertEquals(Integer.MAX_VALUE, OffHeapStorage.calcMaxSlabSize(Long.MAX_VALUE));
+    try {
+      System.setProperty("gemfire.OFF_HEAP_SLAB_SIZE", "99");
+      assertEquals(99*1024*1024, OffHeapStorage.calcMaxSlabSize(100L*1024*1024));
+      System.setProperty("gemfire.OFF_HEAP_SLAB_SIZE", "88m");
+      assertEquals(88*1024*1024, OffHeapStorage.calcMaxSlabSize(100L*1024*1024));
+      System.setProperty("gemfire.OFF_HEAP_SLAB_SIZE", "77M");
+      assertEquals(77*1024*1024, OffHeapStorage.calcMaxSlabSize(100L*1024*1024));
+      System.setProperty("gemfire.OFF_HEAP_SLAB_SIZE", "1g");
+      assertEquals(1*1024*1024*1024, OffHeapStorage.calcMaxSlabSize(2L*1024*1024*1024));
+      System.setProperty("gemfire.OFF_HEAP_SLAB_SIZE", "2G");
+      assertEquals(2L*1024*1024*1024, OffHeapStorage.calcMaxSlabSize(2L*1024*1024*1024+1));
+      System.setProperty("gemfire.OFF_HEAP_SLAB_SIZE", "foobarG");
+      try {
+        OffHeapStorage.calcMaxSlabSize(100);
+        fail("expected IllegalArgumentException");
+      } catch (IllegalArgumentException expected) {
+      }
+      System.setProperty("gemfire.OFF_HEAP_SLAB_SIZE", "");
+      assertEquals(100, OffHeapStorage.calcMaxSlabSize(100L));
+      assertEquals(Integer.MAX_VALUE, OffHeapStorage.calcMaxSlabSize(Long.MAX_VALUE));
+    } finally {
+      System.clearProperty("gemfire.OFF_HEAP_SLAB_SIZE");
+    }
+  }
 }
